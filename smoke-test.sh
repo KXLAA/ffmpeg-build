@@ -32,12 +32,27 @@ reported=$("$ffmpeg" -hide_banner -version)
 reported=${reported%%$'\n'*}
 [[ $reported == "ffmpeg version $version "* ]] || fail "The binary reports \"$reported\", not $version"
 
+# Each tool runs on its own, so a missing or failing one fails the test instead of finding nothing.
 case $(uname -s) in
-    Darwin) foreign=$(otool -L "$ffmpeg" | tail -n +2 | awk '{ print $1 }' | grep -v -E '^/(usr/lib|System)/' || true) ;;
-    Linux) foreign=$(readelf -l "$ffmpeg" | grep 'program interpreter' || true) ;;
-    MINGW* | MSYS*) foreign=$(ldd "$ffmpeg" | awk '{ print $3 }' | grep -v -i '^/c/windows/' || true) ;;
+    Darwin)
+        linked=$(otool -L "$ffmpeg") || fail "otool can't read the binary"
+        linked=$(tail -n +2 <<<"$linked" | awk '{ print $1 }')
+        foreign=$(grep -v -E '^/(usr/lib|System)/' <<<"$linked" || true)
+        ;;
+    Linux)
+        headers=$(readelf -l "$ffmpeg") || fail "readelf can't read the binary"
+        foreign=$(grep 'program interpreter' <<<"$headers" || true)
+        linked=${foreign:-nothing (static)}
+        ;;
+    MINGW* | MSYS*)
+        linked=$(ldd "$ffmpeg") || fail "ldd can't read the binary"
+        linked=$(awk '{ print $3 }' <<<"$linked")
+        foreign=$(grep -v -i '^/c/windows/' <<<"$linked" || true)
+        ;;
     *) fail "No linkage check for $(uname -s)" ;;
 esac
+[ -n "$linked" ] || fail "Found no libraries at all, so the check can't be trusted"
+echo "links: $(tr '\n' ' ' <<<"$linked")"
 [ -z "$foreign" ] || fail "The binary links libraries outside the OS: $foreign"
 
 # Cratebase's decode (apps/server/src/audio/AudioDecoder.ts): the first audio stream as float WAV.
