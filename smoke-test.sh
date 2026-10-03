@@ -55,14 +55,16 @@ esac
 echo "links: $(tr '\n' ' ' <<<"$linked")"
 [ -z "$foreign" ] || fail "The binary links libraries outside the OS: $foreign"
 
-# Cratebase's decode (apps/server/src/audio/AudioDecoder.ts): the first audio stream as float WAV.
+# Cratebase's decode (apps/server/src/audio/AudioDecoder.ts): the first audio stream as raw mono
+# float samples at 44.1 kHz.
 decode() {
     "$ffmpeg" -hide_banner -nostdin -nostats -loglevel error -i "$1" -map 0:a:0 -map_metadata -1 \
-        -fflags +bitexact -codec:a pcm_f32le -f wav pipe:1 | wc -c | tr -d ' '
+        -fflags +bitexact -af aresample=osr=44100:ochl=mono:osf=flt:rematrix_maxval=1 \
+        -codec:a pcm_f32le -f f32le pipe:1 | wc -c | tr -d ' '
 }
 
-# A second of stereo float samples at 44.1 kHz is 352,800 bytes, less what encoders trim.
-MIN_BYTES=340000
+# A second of mono float samples at 44.1 kHz is 176,400 bytes, less what encoders trim.
+MIN_BYTES=170000
 
 for fixture in fixtures/*; do
     bytes=$(decode "$fixture") || fail "$fixture didn't decode"

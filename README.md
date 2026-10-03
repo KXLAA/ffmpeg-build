@@ -25,7 +25,7 @@ What's in it:
 - Decoders: AAC, ALAC, FLAC, MP3, Opus, Vorbis, WMA and PCM.
 - Containers it reads: ADTS, AIFF, ASF, FLAC, Matroska/WebM, MP4/M4A, MP3, Ogg and WAV.
 - Encoders: AAC, ALAC, FLAC, MP3 (LAME) and PCM.
-- Containers it writes: ADTS, AIFF, FLAC, M4A, MP3, MP4 and WAV.
+- Containers it writes: ADTS, AIFF, FLAC, M4A, MP3, MP4 and WAV, plus raw float PCM (`-f f32le`), which is how Cratebase reads decoded audio.
 
 `common.sh` has the exact list.
 

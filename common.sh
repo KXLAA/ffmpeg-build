@@ -39,10 +39,10 @@ FFMPEG_CONFIGURE_FLAGS=(
     --enable-decoder=pcm_f32le,pcm_f32be,pcm_f64le,pcm_u8,pcm_alaw,pcm_mulaw
     --enable-parser=aac,flac,mpegaudio,opus,vorbis
 
-    # Write: float PCM to a pipe for decoding, and the formats Cratebase transcodes to.
+    # Write: raw float PCM to a pipe for decoding (`-f f32le`), and the formats Cratebase transcodes to.
     --enable-libmp3lame
     --enable-encoder=pcm_f32le,pcm_s16le,pcm_s24le,pcm_s16be,pcm_s24be,flac,alac,aac,libmp3lame
-    --enable-muxer=wav,aiff,flac,mp3,ipod,mp4,adts
+    --enable-muxer=pcm_f32le,wav,aiff,flac,mp3,ipod,mp4,adts
     --enable-bsf=aac_adtstoasc
     --enable-filter=aformat,anull,aresample,atrim,format,null
 )
